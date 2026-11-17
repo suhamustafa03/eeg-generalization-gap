@@ -1,0 +1,12 @@
+data/raw/
+data/processed/
+*.pyc
+__pycache__/
+.venv
+venv/
+*.npz
+*.edf
+*.edf.gz
+results/*.json
+.DS_Store
+.ipynb_checkpoints/
