@@ -154,7 +154,7 @@
   <div class="card">
     <p><strong>Data:</strong> Sleep-EDF Database Expanded (PhysioNet, ODC-By license). Two cohorts: <em>sleep-cassette</em> (healthy subjects, 1987–91) and <em>sleep-telemetry</em> (subjects with mild sleep difficulty, 1994), single EEG channel (Fpz-Cz) for comparability.</p>
     <p><strong>Preprocessing:</strong> 30-second epochs, AASM 5-class staging (W / N1 / N2 / N3 / REM).</p>
-    <p><strong>Models:</strong> a small 1D-CNN over raw epochs, and a LightGBM classifier over hand-engineered interpretable features (relative band power, spectral edge frequency, spectral entropy, Hjorth parameters).</p>
+    <p><strong>Models:</strong> a small 1D-CNN over raw epochs, and a RandomForest classifier over hand-engineered interpretable features (relative band power, spectral edge frequency, spectral entropy, Hjorth parameters).</p>
     <p><strong>Evaluation:</strong> subject-grouped cross-validation within a cohort (in-domain reference), vs. train-on-cassette / test-on-telemetry (cross-cohort). Macro-F1 with bootstrap 95% confidence intervals.</p>
     <p><strong>Interpretability:</strong> SHAP feature importances computed separately per cohort; Spearman rank correlation between the two importance rankings measures whether the model's reasoning is stable across the distribution shift.</p>
     <p>Full code: <a href="../src/">src/</a>. Reproduce with <code>python src/run_pipeline.py</code>.</p>
@@ -178,7 +178,7 @@
   <h2>Limitations</h2>
   <div class="card limits">
     <ul id="limits-list">
-      <li>Small subject counts for a fast, reproducible demo run — confidence intervals are reported precisely so this is not hidden.</li>
+      <li>Full cassette/telemetry cohorts from a single public database (PhysioNet Sleep-EDFx) — confidence intervals are reported precisely rather than hidden, but these are still two specific cohorts, not a broad multi-site benchmark.</li>
       <li>Single EEG channel only; multi-channel information is not used.</li>
       <li>Two cohorts differ in more than one way at once (age, health status, recording era, hardware) — the study cannot fully isolate which factor drives the gap.</li>
       <li>This is an educational research replication, not a validated clinical or diagnostic tool, and makes no claim to outperform published sleep-staging systems.</li>
