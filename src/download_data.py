@@ -17,6 +17,7 @@ import pathlib
 import re
 import sys
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 BASE_URL = "https://physionet.org/files/sleep-edfx/1.0.0"
 RAW_DIR = pathlib.Path(__file__).resolve().parent.parent / "data" / "raw"
@@ -74,6 +75,9 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--subset", choices=["cassette", "telemetry"], required=True)
     parser.add_argument("--n", type=int, default=20, help="number of subject recordings to pull")
+    parser.add_argument(
+        "--workers", type=int, default=6, help="concurrent download connections"
+    )
     args = parser.parse_args()
 
     dest_dir = RAW_DIR / args.subset
@@ -90,16 +94,33 @@ def main():
 
     # Each subject has a -PSG.edf (signals) and -Hypnogram.edf (labels) pair.
     psg_files = sorted(r for r in records if "PSG" in r)[: args.n]
+    to_fetch = []
     for psg in psg_files:
         # e.g. "SC4001E0-PSG.edf" and "SC4001EC-Hypnogram.edf" share only the
         # first 6 characters of the subject code, not the full PSG prefix.
         subject_id = psg.split("-")[0][:6]
         matching_hyp = [r for r in records if r.startswith(subject_id) and "Hypnogram" in r]
-        download_file(args.subset, psg, dest_dir)
-        for hyp in matching_hyp:
-            download_file(args.subset, hyp, dest_dir)
+        to_fetch.append(psg)
+        to_fetch.extend(matching_hyp)
 
-    print(f"Done. Files saved under {dest_dir}")
+    errors = []
+    with ThreadPoolExecutor(max_workers=args.workers) as pool:
+        futures = {pool.submit(download_file, args.subset, f, dest_dir): f for f in to_fetch}
+        for i, future in enumerate(as_completed(futures), 1):
+            relpath = futures[future]
+            try:
+                future.result()
+            except Exception as e:
+                errors.append((relpath, e))
+                print(f"FAILED {relpath}: {e}", file=sys.stderr)
+            if i % 10 == 0 or i == len(to_fetch):
+                print(f"Progress: {i}/{len(to_fetch)} files")
+
+    if errors:
+        print(f"{len(errors)} file(s) failed to download; re-run this command to retry them.", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"Done. {len(to_fetch)} files saved under {dest_dir}")
 
 
 if __name__ == "__main__":

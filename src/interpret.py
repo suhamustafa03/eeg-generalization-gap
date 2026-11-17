@@ -18,16 +18,33 @@ import pathlib
 import numpy as np
 import shap
 from scipy.stats import spearmanr
+from sklearn.model_selection import train_test_split
 
 from features import FEATURE_NAMES
 from models import make_feature_model
 
+# Exact TreeExplainer SHAP cost grows with the number of samples explained;
+# at tens/hundreds of thousands of epochs this becomes impractical (we
+# measured >5 minutes and still running on just 26k epochs). Computing SHAP
+# on a large, class-stratified random subsample instead of the full dataset
+# is standard practice for TreeExplainer at scale and does not change what
+# the feature-stability comparison measures (mean |SHAP value| per feature).
+SHAP_MAX_SAMPLES = 5000
 
-def mean_abs_shap(features: np.ndarray, labels: np.ndarray) -> np.ndarray:
+
+def mean_abs_shap(features: np.ndarray, labels: np.ndarray, max_samples: int = SHAP_MAX_SAMPLES) -> np.ndarray:
     model = make_feature_model()
     model.fit(features, labels)
+
+    if len(features) > max_samples:
+        shap_features, _ = train_test_split(
+            features, train_size=max_samples, random_state=0, stratify=labels
+        )
+    else:
+        shap_features = features
+
     explainer = shap.TreeExplainer(model)
-    shap_values = explainer.shap_values(features)
+    shap_values = explainer.shap_values(shap_features)
     # Multiclass TreeExplainer output varies by SHAP version:
     #   - list of (n_samples, n_features) arrays, one per class, or
     #   - a single (n_samples, n_features, n_classes) ndarray.

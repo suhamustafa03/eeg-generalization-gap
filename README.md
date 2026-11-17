@@ -6,28 +6,53 @@ baseline against a fully interpretable feature-based model. Built as a
 research-skills demonstration project, not a production medical tool.
 
 **Full proposal:** [docs/PROPOSAL.md](docs/PROPOSAL.md)
-**Results website:** [site/index.html](site/index.html) — already built from a real run (10 subjects/cohort); open it directly in a browser.
+**Results website:** [site/index.html](site/index.html) — built from the full-cohort run below; open it directly in a browser.
 
-## Headline result (from an actual run, 10 subjects per cohort)
+## Headline result (full cohort: 153 cassette + 44 telemetry subjects)
+
+| Model | Within-cohort macro-F1 | Cross-cohort macro-F1 | Generalization gap |
+|---|---|---|---|
+| CNN | 0.683 (95% CI 0.681–0.685) | 0.557 (95% CI 0.552–0.562) | **0.126** |
+| Feature model (RandomForest) | 0.629 (95% CI 0.626–0.630) | 0.627 (95% CI 0.622–0.633) | **0.002** |
+
+At full scale, both models' cross-cohort gaps are much smaller than the
+10-subject preliminary run below suggested — and the feature model's gap is
+essentially zero: its macro-F1 on the unseen telemetry cohort (0.627) is
+statistically indistinguishable from its within-cassette macro-F1 (0.629).
+The CNN still shows a real gap (0.126), driven mostly by Wake (W), whose F1
+collapses from 0.95 within-cohort to 0.20 cross-cohort — the CNN relies on
+cues that do not transfer for recognizing wakefulness in the telemetry
+cohort, while the feature model's hand-engineered band-power/Hjorth features
+hold up. The feature-importance rank correlation between cohorts is now 0.62
+(Spearman, p = 0.031) — a significant, moderately strong correlation,
+consistent with the feature model's near-zero generalization gap: it really
+is relying on similar cues in both cohorts.
+
+This reverses the preliminary 10-subject finding below, where the feature
+model appeared to generalize better but with a non-trivial gap, and
+underscores why the small-sample run was explicitly labeled preliminary:
+sample size changed not just the precision of the estimates but, for the
+feature model, the qualitative conclusion.
+
+### Preliminary result (10 subjects per cohort — superseded by the full-cohort run above)
 
 | Model | Within-cohort macro-F1 | Cross-cohort macro-F1 | Generalization gap |
 |---|---|---|---|
 | CNN | 0.702 (95% CI 0.694–0.710) | 0.270 (95% CI 0.262–0.279) | **0.432** |
 | Feature model (RandomForest) | 0.735 (95% CI 0.727–0.743) | 0.470 (95% CI 0.459–0.479) | **0.266** |
 
-Both models lose substantial accuracy moving from the healthy, within-cohort
-setting to the unseen telemetry cohort — but the CNN's gap is roughly 1.6x
-larger. Looking at the cross-cohort confusion matrix, the CNN's failure mode
-is specific: it collapses most predictions into N1, a stage it never
-confidently separates even in-domain. The feature-importance rank
-correlation between cohorts is 0.57 (Spearman, p = 0.055) — suggestive of
-some shared reasoning but not statistically significant at this sample
-size, which is itself an honest finding about the limits of a 10-subject
-demo rather than a null result to hide.
+This smaller run showed both models losing substantial accuracy
+cross-cohort, with the CNN's gap roughly 1.6x the feature model's, and a
+feature-importance rank correlation of 0.57 (Spearman, p = 0.055, not
+significant at this sample size). It is kept here, clearly marked
+preliminary, as an honest record of how the estimates and even the ranking
+between models changed once the full cohort was used — not as a result to
+build conclusions on.
 
-This is a small, fast, fully reproducible run (10 subjects/cohort, one EEG
-channel) — not a claim to match published, larger-scale sleep-staging
-systems. See [Limitations](#honesty-notes) below and in the site.
+Both runs are small relative to clinical sleep-staging literature (one EEG
+channel, two specific PhysioNet cohorts) — not a claim to match published,
+larger-scale systems. See [Limitations](#honesty-notes) below and in the
+site.
 
 ## Research question
 
@@ -91,19 +116,28 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Download data (public, no account needed):
+Download data (public, no account needed). For the full cohort used in the
+headline result above:
 
 ```bash
-python src/download_data.py --subset cassette --n 10
-python src/download_data.py --subset telemetry --n 10
+python src/download_data.py --subset cassette --n 153
+python src/download_data.py --subset telemetry --n 44
 ```
+
+(For a quick, smaller reproduction, use a lower `--n`, e.g. 10, matching the
+preliminary result above.)
 
 Run the full pipeline (builds processed datasets, trains/evaluates both
 models within-cohort and cross-cohort, runs the SHAP stability analysis):
 
 ```bash
-python src/run_pipeline.py --max-subjects 10
+python src/run_pipeline.py --max-subjects 999
 ```
+
+(The full cassette download is ~7GB and the full run takes roughly 15–20
+minutes on a modern CPU — dataset loading dominates; model training and SHAP
+are fast thanks to subsampling. Use `--max-subjects 10` for a quick
+preliminary run instead.)
 
 This writes `results/results.json`. Build the website from it:
 
@@ -112,11 +146,11 @@ python site/build_site.py
 open site/index.html   # or just open the file in a browser
 ```
 
-No GPU is required; the CNN is intentionally small enough to train on CPU
-in a few minutes for this subject count. For a larger run with more
-subjects, see `notebooks/colab_pipeline.ipynb` for a free-compute (Google
-Colab) alternative — check current Colab free-tier limits before relying on
-it, since they change over time.
+No GPU is required; the CNN and RandomForest both train on CPU in a few
+minutes even at full scale. See `notebooks/colab_pipeline.ipynb` for a
+free-compute (Google Colab) alternative if local compute or storage isn't
+available — check current Colab free-tier limits before relying on it,
+since they change over time.
 
 ## Honesty notes
 
