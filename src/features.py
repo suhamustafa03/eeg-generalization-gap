@@ -27,11 +27,11 @@ FEATURE_NAMES = (
 
 
 def _band_powers(freqs: np.ndarray, psd: np.ndarray) -> dict[str, float]:
-    total = np.trapz(psd, freqs) + 1e-12
+    total = np.trapezoid(psd, freqs) + 1e-12
     out = {}
     for name, (lo, hi) in BANDS.items():
         mask = (freqs >= lo) & (freqs < hi)
-        out[f"relpow_{name}"] = np.trapz(psd[mask], freqs[mask]) / total
+        out[f"relpow_{name}"] = np.trapezoid(psd[mask], freqs[mask]) / total
     return out
 
 

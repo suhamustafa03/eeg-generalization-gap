@@ -42,14 +42,32 @@ def fetch_record_list(subset: str) -> list[str]:
         return []
 
 
+def _remote_size(url: str) -> int | None:
+    try:
+        req = urllib.request.Request(url, method="HEAD")
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            length = resp.headers.get("Content-Length")
+            return int(length) if length is not None else None
+    except Exception:
+        return None
+
+
 def download_file(subset: str, relpath: str, dest_dir: pathlib.Path) -> None:
     url = f"{BASE_URL}/{SUBSET_DIRS[subset]}/{relpath}"
     dest = dest_dir / relpath
     dest.parent.mkdir(parents=True, exist_ok=True)
+    expected = _remote_size(url)
     if dest.exists() and dest.stat().st_size > 0:
-        return
+        if expected is None or dest.stat().st_size == expected:
+            return
+        print(f"Re-downloading {relpath}: local size {dest.stat().st_size} != remote {expected}")
     print(f"Downloading {url}")
     urllib.request.urlretrieve(url, dest)
+    if expected is not None and dest.stat().st_size != expected:
+        raise IOError(
+            f"Download incomplete for {relpath}: got {dest.stat().st_size} bytes, "
+            f"expected {expected}"
+        )
 
 
 def main():
@@ -73,7 +91,9 @@ def main():
     # Each subject has a -PSG.edf (signals) and -Hypnogram.edf (labels) pair.
     psg_files = sorted(r for r in records if "PSG" in r)[: args.n]
     for psg in psg_files:
-        subject_id = psg.split("-")[0]
+        # e.g. "SC4001E0-PSG.edf" and "SC4001EC-Hypnogram.edf" share only the
+        # first 6 characters of the subject code, not the full PSG prefix.
+        subject_id = psg.split("-")[0][:6]
         matching_hyp = [r for r in records if r.startswith(subject_id) and "Hypnogram" in r]
         download_file(args.subset, psg, dest_dir)
         for hyp in matching_hyp:

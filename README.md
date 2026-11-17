@@ -6,7 +6,28 @@ baseline against a fully interpretable feature-based model. Built as a
 research-skills demonstration project, not a production medical tool.
 
 **Full proposal:** [docs/PROPOSAL.md](docs/PROPOSAL.md)
-**Results website:** [site/index.html](site/index.html) (open locally after running the pipeline — see below)
+**Results website:** [site/index.html](site/index.html) — already built from a real run (10 subjects/cohort); open it directly in a browser.
+
+## Headline result (from an actual run, 10 subjects per cohort)
+
+| Model | Within-cohort macro-F1 | Cross-cohort macro-F1 | Generalization gap |
+|---|---|---|---|
+| CNN | 0.702 (95% CI 0.694–0.710) | 0.270 (95% CI 0.262–0.279) | **0.432** |
+| Feature model (RandomForest) | 0.735 (95% CI 0.727–0.743) | 0.470 (95% CI 0.459–0.479) | **0.266** |
+
+Both models lose substantial accuracy moving from the healthy, within-cohort
+setting to the unseen telemetry cohort — but the CNN's gap is roughly 1.6x
+larger. Looking at the cross-cohort confusion matrix, the CNN's failure mode
+is specific: it collapses most predictions into N1, a stage it never
+confidently separates even in-domain. The feature-importance rank
+correlation between cohorts is 0.57 (Spearman, p = 0.055) — suggestive of
+some shared reasoning but not statistically significant at this sample
+size, which is itself an honest finding about the limits of a 10-subject
+demo rather than a null result to hide.
+
+This is a small, fast, fully reproducible run (10 subjects/cohort, one EEG
+channel) — not a claim to match published, larger-scale sleep-staging
+systems. See [Limitations](#honesty-notes) below and in the site.
 
 ## Research question
 
@@ -50,7 +71,7 @@ src/
   preprocessing.py      30s epoching + AASM 5-class labels via MNE
   features.py            Interpretable per-epoch EEG features (band power, Hjorth, etc.)
   dataset_build.py      Build cached .npz datasets from raw recordings
-  models.py                 CNN baseline + LightGBM feature model
+  models.py                 CNN baseline + RandomForest feature model
   train_cnn.py             Standalone CNN training script
   evaluate.py              Within-cohort vs. cross-cohort evaluation (subject-grouped)
   interpret.py              SHAP feature-importance stability across cohorts

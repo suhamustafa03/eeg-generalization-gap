@@ -7,6 +7,5 @@ torch
 matplotlib
 seaborn
 shap
-lightgbm
 pyedflib
 tqdm

@@ -5,15 +5,20 @@ Two sleep-stage classifiers compared throughout this project:
    approach, e.g. similar in spirit to DeepSleepNet/TinySleepNet but much
    smaller, since this is a feasibility/interpretability study, not a bid
    for SOTA accuracy).
-2. FeatureModel - a LightGBM classifier over the hand-engineered features in
-   features.py (fully interpretable via SHAP and feature importances).
+2. FeatureModel - a scikit-learn RandomForest over the hand-engineered
+   features in features.py (fully interpretable via SHAP and feature
+   importances). RandomForest was chosen over a gradient-boosting library
+   (e.g. LightGBM) specifically because mixing it with PyTorch in the same
+   process reproducibly segfaults on this machine (a known libomp
+   ABI conflict between the two libraries' bundled OpenMP runtimes) —
+   scikit-learn's tree ensembles have no such conflict.
 """
 from __future__ import annotations
 
 import numpy as np
 import torch
 import torch.nn as nn
-from lightgbm import LGBMClassifier
+from sklearn.ensemble import RandomForestClassifier
 
 N_CLASSES = 5
 
@@ -49,15 +54,13 @@ class CNNBaseline(nn.Module):
         return self.classifier(x)
 
 
-def make_feature_model(class_weight: dict | str | None = "balanced") -> LGBMClassifier:
-    return LGBMClassifier(
+def make_feature_model(class_weight: dict | str | None = "balanced") -> RandomForestClassifier:
+    return RandomForestClassifier(
         n_estimators=300,
-        max_depth=6,
-        learning_rate=0.05,
-        num_leaves=31,
+        max_depth=12,
         class_weight=class_weight,
         random_state=0,
-        verbosity=-1,
+        n_jobs=-1,
     )
 
 

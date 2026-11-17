@@ -53,7 +53,8 @@ A controlled replication-and-extension, not a SOTA claim:
 ## Methods
 - Preprocessing: resample to common rate, 30s epochs, AASM 5-class labels
   (W, N1, N2, N3, REM), standard artifact rejection.
-- Models: (a) 1D-CNN baseline on raw/filtered epochs; (b) LightGBM on
+- Models: (a) 1D-CNN baseline on raw/filtered epochs; (b) a scikit-learn
+  RandomForest on
   hand-engineered features (relative band power per band, spectral edge
   frequency, Hjorth parameters, spindle/K-complex counts via existing
   detectors in `yasa`/`mne`).

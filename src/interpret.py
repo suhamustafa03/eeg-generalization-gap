@@ -28,10 +28,17 @@ def mean_abs_shap(features: np.ndarray, labels: np.ndarray) -> np.ndarray:
     model.fit(features, labels)
     explainer = shap.TreeExplainer(model)
     shap_values = explainer.shap_values(features)
-    # shap_values: list of (n_samples, n_features) per class, or array for binary.
+    # Multiclass TreeExplainer output varies by SHAP version:
+    #   - list of (n_samples, n_features) arrays, one per class, or
+    #   - a single (n_samples, n_features, n_classes) ndarray.
+    # Either way, reduce to one importance value per feature by averaging
+    # |SHAP value| over samples and classes.
     if isinstance(shap_values, list):
         stacked = np.stack([np.abs(sv).mean(axis=0) for sv in shap_values])
         return stacked.mean(axis=0)
+    shap_values = np.asarray(shap_values)
+    if shap_values.ndim == 3:
+        return np.abs(shap_values).mean(axis=(0, 2))
     return np.abs(shap_values).mean(axis=0)
 
 
