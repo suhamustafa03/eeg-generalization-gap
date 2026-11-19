@@ -22,7 +22,9 @@ LAYOUT_PATH = SITE_DIR / "layout.html"
 CONTENT_DIR = SITE_DIR / "content"
 
 # (filename, nav label, page title, meta description, dek shown under the
-# page heading, hero-style header instead of a plain page-head)
+# page heading, hero-style header instead of a plain page-head, is_welcome:
+# index.html supplies its own full hero in content/overview.html, so no
+# separate __HEADER__ block is built for it)
 PAGES = [
     (
         "index.html",
@@ -30,6 +32,7 @@ PAGES = [
         "Overview",
         "Overview of a controlled cross-cohort study of EEG sleep-stage classifier generalization.",
         None,
+        True,
         True,
     ),
     (
@@ -39,6 +42,7 @@ PAGES = [
         "Full model comparison, generalization gaps, stage-level performance, and SHAP feature stability.",
         "Full-cohort model comparison, generalization gaps, per-stage performance, and feature-importance stability across cohorts.",
         False,
+        False,
     ),
     (
         "methods.html",
@@ -46,6 +50,7 @@ PAGES = [
         "Methods",
         "Datasets, preprocessing, models, and evaluation protocol.",
         "Datasets, preprocessing, the two models compared, and the evaluation protocol.",
+        False,
         False,
     ),
     (
@@ -55,6 +60,7 @@ PAGES = [
         "What the findings suggest, related work, uncertainty, and limitations.",
         "What the results suggest and don't suggest, why the preliminary finding reversed, related work, and limitations.",
         False,
+        False,
     ),
     (
         "reproducibility.html",
@@ -62,6 +68,7 @@ PAGES = [
         "Reproducibility",
         "Setup, data sources, and how to rerun the full analysis.",
         "Setup, data sources, and exact commands to rerun the full analysis yourself.",
+        False,
         False,
     ),
 ]
@@ -77,7 +84,11 @@ def build_nav(active_filename: str) -> str:
     return "\n    ".join(links)
 
 
-def build_header(title: str, dek: str | None, is_hero: bool) -> str:
+def build_header(title: str, dek: str | None, is_hero: bool, is_welcome: bool = False) -> str:
+    if is_welcome:
+        # index.html supplies its own full welcome hero as the first
+        # section of its content fragment; no separate header markup here.
+        return ""
     if is_hero:
         return """<header class="hero">
   <h1>Where Does Sleep-Staging Generalization Break?</h1>
@@ -175,6 +186,44 @@ function renderComparison() {
   `;
 }
 
+function renderPreview() {
+  var card = document.getElementById("preview-card");
+  var note = document.getElementById("preview-note");
+  if (!card) return;
+  var r = RESULTS;
+  if (!r || !r.within_cassette_cnn) {
+    card.innerHTML = '<p class="no-data">No results yet.</p>';
+    if (note) note.textContent = "";
+    return;
+  }
+  var gap = r.generalization_gap;
+  function row(label, value) {
+    return '<div class="preview-row"><span>' + label + '</span><strong>' + fmt(value, 3) + '</strong></div>';
+  }
+  function gapRow(value) {
+    var cls = value <= 0.02 ? "preview-gap-good" : "preview-gap-bad";
+    return '<div class="preview-row"><span>Generalization gap</span><strong class="' + cls + '">' + fmt(value, 3) + '</strong></div>';
+  }
+  card.innerHTML =
+    '<div class="preview-grid">' +
+      '<div class="preview-model-card">' +
+        '<p class="preview-model-name">CNN</p>' +
+        row("Within-cohort macro-F1", r.within_cassette_cnn.macro_f1) +
+        row("Cross-cohort macro-F1", r.cross_cnn.macro_f1) +
+        gapRow(gap.cnn_gap) +
+      '</div>' +
+      '<div class="preview-model-card">' +
+        '<p class="preview-model-name">Feature model (RandomForest)</p>' +
+        row("Within-cohort macro-F1", r.within_cassette_feature.macro_f1) +
+        row("Cross-cohort macro-F1", r.cross_feature.macro_f1) +
+        gapRow(gap.feature_gap) +
+      '</div>' +
+    '</div>';
+  if (note) {
+    note.textContent = "The CNN still loses accuracy on the unseen cohort; the RandomForest's cross-cohort score is close enough to its within-cohort score that the full Results and Interpretation pages treat it as no detectable difference, not proof of flawless generalization.";
+  }
+}
+
 function renderStageLevel() {
   const el = document.getElementById("stage-card");
   if (!el) return;
@@ -223,6 +272,7 @@ function renderInterp() {
 
 renderHeadline();
 renderComparison();
+renderPreview();
 renderStageLevel();
 renderInterp();
 </script>
@@ -244,19 +294,20 @@ def main():
         "index.html": "overview.html",
     }
 
-    for i, (filename, nav_label, title, description, dek, is_hero) in enumerate(PAGES):
+    for i, (filename, nav_label, title, description, dek, is_hero, is_welcome) in enumerate(PAGES):
         content_path = CONTENT_DIR / content_filenames.get(filename, filename)
         content = content_path.read_text()
 
         # Only pages with a data-driven card need the results script.
-        if any(marker in content for marker in ("headline-card", "comparison-card", "stage-card", "interp-card")):
+        if any(marker in content for marker in ("headline-card", "comparison-card", "stage-card", "interp-card", "preview-card")):
             content += RENDER_SCRIPT.replace("__RESULTS_JSON__", results_json)
 
         page = layout
         page = page.replace("__PAGE_TITLE__", title)
         page = page.replace("__PAGE_DESCRIPTION__", description)
+        page = page.replace("__BODY_CLASS__", "page-welcome" if is_welcome else "")
         page = page.replace("__NAV__", build_nav(filename))
-        page = page.replace("__HEADER__", build_header(title, dek, is_hero))
+        page = page.replace("__HEADER__", build_header(title, dek, is_hero, is_welcome))
         page = page.replace("__CONTENT__", content)
         page = page.replace("__PAGE_FOOTER_NAV__", build_footer_nav(i))
 

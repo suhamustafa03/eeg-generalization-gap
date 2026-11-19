@@ -1,3 +1,38 @@
+<section class="welcome-hero" id="welcome-hero" aria-label="Welcome">
+  <div class="welcome-sky" aria-hidden="true">
+    <div class="welcome-stars">
+      <div class="welcome-stars-near"></div>
+    </div>
+    <div class="welcome-glow welcome-glow-1"></div>
+    <div class="welcome-glow welcome-glow-2"></div>
+    <div class="welcome-glow welcome-glow-3"></div>
+    <div class="welcome-glow welcome-glow-4"></div>
+  </div>
+  <div class="welcome-content">
+    <p class="welcome-eyebrow">A study of sleep, across minds</p>
+    <h1 class="welcome-title">Where Does Sleep-Staging Generalization Break?</h1>
+    <p class="welcome-sub">A controlled cross-cohort study comparing a deep CNN against an interpretable feature-based model on public EEG sleep data &mdash; a decomposition of <em>where and why</em> generalization fails.</p>
+    <div class="welcome-actions">
+      <a class="welcome-cta" id="explore-cta" href="#results-preview">Explore the findings</a>
+      <a class="welcome-secondary" href="#overview-detail">Project overview &amp; methods &darr;</a>
+    </div>
+  </div>
+</section>
+
+<section class="results-preview" id="results-preview" aria-label="Results preview">
+  <div class="results-preview-inner">
+    <div class="results-preview-panel">
+      <p class="results-preview-eyebrow">Full-cohort results &mdash; 153 cassette + 44 telemetry recordings</p>
+      <h2 class="results-preview-title">Where the gap nearly disappears</h2>
+      <div id="preview-card"></div>
+      <p class="results-preview-note" id="preview-note">Loading results&hellip;</p>
+      <a class="results-preview-link" href="results.html">View the full breakdown and stage-level detail &rarr;</a>
+    </div>
+  </div>
+</section>
+
+<div id="overview-detail">
+
 <section id="headline">
   <h2>Main finding</h2>
   <div id="headline-card" class="card"></div>
@@ -31,3 +66,44 @@
     </table>
   </div>
 </section>
+
+</div>
+
+<script>
+(function () {
+  var hero = document.getElementById("welcome-hero");
+  var cta = document.getElementById("explore-cta");
+  var preview = document.getElementById("results-preview");
+  if (!hero || !cta || !preview) return;
+
+  var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  cta.addEventListener("click", function (e) {
+    e.preventDefault();
+    if (!reduceMotion) {
+      hero.classList.add("hero-exit");
+    }
+    var delay = reduceMotion ? 0 : 380;
+    setTimeout(function () {
+      preview.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+      // Move focus for keyboard/screen-reader users once the destination is in view.
+      preview.setAttribute("tabindex", "-1");
+      preview.focus({ preventScroll: true });
+    }, delay);
+  });
+
+  if (reduceMotion || typeof IntersectionObserver === "undefined") {
+    preview.classList.add("visible");
+  } else {
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          preview.classList.add("visible");
+          observer.unobserve(preview);
+        }
+      });
+    }, { threshold: 0.15 });
+    observer.observe(preview);
+  }
+})();
+</script>

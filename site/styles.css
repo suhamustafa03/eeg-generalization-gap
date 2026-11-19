@@ -108,31 +108,378 @@ nav.site-nav a.active {
   font-weight: 600;
 }
 
-/* page hero (overview page only) */
-.hero {
-  padding: 48px 20px 36px;
+/* welcome hero (overview page only) — deliberately single-themed (dark
+   night sky) regardless of the viewer's light/dark preference, since it is
+   a self-contained visual moment rather than a themed content surface. */
+.welcome-hero {
+  position: relative;
+  min-height: 560px;
+  min-height: calc(100svh - 112px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% -10%, #2a2a52 0%, #15152e 45%, #0a0a18 100%);
+  padding-block: 64px;
+  padding-left: max(20px, env(safe-area-inset-left, 0px));
+  padding-right: max(20px, env(safe-area-inset-right, 0px));
+}
+.welcome-sky {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.welcome-stars {
+  position: absolute;
+  inset: 0;
+}
+/* Three depth layers: a dim distant field, a brighter mid field, and a
+   handful of larger "near" stars that twinkle individually on their own
+   offset timing — layered rather than one uniform flat field. */
+.welcome-stars::before,
+.welcome-stars::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+.welcome-stars::before {
+  /* distant, dim, dense */
+  background-image:
+    radial-gradient(0.8px 0.8px at 6% 12%, rgba(255,255,255,0.35), transparent),
+    radial-gradient(0.8px 0.8px at 18% 42%, rgba(255,255,255,0.3), transparent),
+    radial-gradient(0.8px 0.8px at 30% 78%, rgba(255,255,255,0.4), transparent),
+    radial-gradient(0.8px 0.8px at 46% 24%, rgba(255,255,255,0.3), transparent),
+    radial-gradient(0.8px 0.8px at 58% 62%, rgba(255,255,255,0.35), transparent),
+    radial-gradient(0.8px 0.8px at 66% 10%, rgba(255,255,255,0.3), transparent),
+    radial-gradient(0.8px 0.8px at 74% 48%, rgba(255,255,255,0.4), transparent),
+    radial-gradient(0.8px 0.8px at 82% 84%, rgba(255,255,255,0.3), transparent),
+    radial-gradient(0.8px 0.8px at 90% 30%, rgba(255,255,255,0.35), transparent),
+    radial-gradient(0.8px 0.8px at 97% 66%, rgba(255,255,255,0.3), transparent),
+    radial-gradient(0.8px 0.8px at 12% 92%, rgba(255,255,255,0.3), transparent),
+    radial-gradient(0.8px 0.8px at 38% 8%, rgba(255,255,255,0.3), transparent);
+  opacity: 0.9;
+  animation: twinkle-slow 9s ease-in-out infinite alternate;
+}
+.welcome-stars::after {
+  /* mid field, slightly brighter/larger */
+  background-image:
+    radial-gradient(1.3px 1.3px at 10% 20%, rgba(255,255,255,0.85), transparent),
+    radial-gradient(1px 1px at 25% 65%, rgba(255,255,255,0.65), transparent),
+    radial-gradient(1.3px 1.3px at 40% 15%, rgba(255,255,255,0.75), transparent),
+    radial-gradient(1px 1px at 55% 80%, rgba(255,255,255,0.55), transparent),
+    radial-gradient(1.3px 1.3px at 70% 35%, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1px 1px at 85% 60%, rgba(255,255,255,0.65), transparent),
+    radial-gradient(1.3px 1.3px at 92% 20%, rgba(255,255,255,0.75), transparent),
+    radial-gradient(1px 1px at 15% 90%, rgba(255,255,255,0.55), transparent),
+    radial-gradient(1.3px 1.3px at 60% 50%, rgba(255,255,255,0.65), transparent),
+    radial-gradient(1px 1px at 35% 40%, rgba(255,255,255,0.45), transparent);
+  opacity: 0.85;
+  animation: twinkle 7s ease-in-out infinite alternate;
+  animation-delay: -2.5s;
+}
+.welcome-stars-near {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(2px 2px at 22% 30%, rgba(255,255,255,0.95), transparent),
+    radial-gradient(2.2px 2.2px at 78% 22%, rgba(255,255,255,0.9), transparent),
+    radial-gradient(1.8px 1.8px at 48% 72%, rgba(255,255,255,0.95), transparent),
+    radial-gradient(2px 2px at 88% 58%, rgba(255,255,255,0.85), transparent);
+  animation: sparkle 4.5s ease-in-out infinite;
+}
+.welcome-stars-near::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(2px 2px at 14% 70%, rgba(255,255,255,0.9), transparent),
+    radial-gradient(2.2px 2.2px at 62% 12%, rgba(255,255,255,0.95), transparent);
+  animation: sparkle 5.5s ease-in-out infinite;
+  animation-delay: -2s;
+}
+.welcome-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.55;
+}
+.welcome-glow-1 {
+  width: 320px;
+  height: 320px;
+  top: 8%;
+  left: 12%;
+  background: #6366f1;
+  animation: drift-1 26s ease-in-out infinite alternate;
+}
+.welcome-glow-2 {
+  width: 260px;
+  height: 260px;
+  bottom: 6%;
+  right: 10%;
+  background: #22d3ee;
+  opacity: 0.35;
+  animation: drift-2 32s ease-in-out infinite alternate;
+}
+.welcome-glow-3 {
+  width: 220px;
+  height: 220px;
+  top: 40%;
+  right: 25%;
+  background: #a78bfa;
+  opacity: 0.3;
+  animation: drift-3 22s ease-in-out infinite alternate;
+}
+.welcome-glow-4 {
+  width: 180px;
+  height: 180px;
+  bottom: 30%;
+  left: 30%;
+  background: #f0abfc;
+  opacity: 0.18;
+  animation: drift-2 28s ease-in-out infinite alternate;
+  animation-delay: -6s;
+}
+@keyframes twinkle {
+  from { opacity: 0.55; }
+  to { opacity: 0.95; }
+}
+@keyframes twinkle-slow {
+  from { opacity: 0.7; }
+  to { opacity: 1; }
+}
+@keyframes sparkle {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+@keyframes drift-1 {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(24px, 18px) scale(1.08); }
+}
+@keyframes drift-2 {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(-20px, -16px) scale(1.05); }
+}
+@keyframes drift-3 {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(14px, -22px) scale(1.1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .welcome-stars::before, .welcome-stars::after, .welcome-stars-near, .welcome-stars-near::after,
+  .welcome-glow-1, .welcome-glow-2, .welcome-glow-3, .welcome-glow-4 {
+    animation: none;
+  }
+}
+.welcome-content {
+  position: relative;
+  z-index: 1;
   text-align: center;
-  border-bottom: 1px solid var(--border);
+  max-width: 680px;
 }
-.hero h1 {
-  font-size: clamp(1.6rem, 4vw, 2.3rem);
-  margin: 0 0 12px;
-  max-width: 760px;
-  margin-inline: auto;
+.welcome-eyebrow {
+  color: #c7d2fe;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  margin: 0 0 18px;
 }
-.hero p.sub {
-  color: var(--text-muted);
-  max-width: 640px;
-  margin: 0 auto;
+.welcome-title {
+  color: #fdfdfe;
+  font-size: clamp(1.8rem, 5vw, 3rem);
+  line-height: 1.15;
+  margin: 0 0 20px;
+  text-wrap: balance;
+}
+.welcome-sub {
+  color: #cfd3e6;
+  font-size: clamp(1rem, 2vw, 1.15rem);
+  line-height: 1.6;
+  margin: 0 auto 36px;
+  max-width: 560px;
+}
+.welcome-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+.welcome-cta {
+  display: inline-block;
+  background: #818cf8;
+  color: #0a0a18;
+  font-weight: 700;
   font-size: 1.05rem;
-}
-.badges { margin-top: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-.badge {
-  font-size: 0.78rem;
-  padding: 4px 10px;
+  padding: 14px 32px;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  color: var(--text-muted);
+  text-decoration: none;
+  box-shadow: 0 8px 28px rgba(99, 102, 241, 0.45);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.welcome-cta:hover {
+  background: #a5b4fc;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 32px rgba(99, 102, 241, 0.55);
+}
+@media (prefers-reduced-motion: reduce) {
+  .welcome-cta { transition: none; }
+  .welcome-cta:hover { transform: none; }
+}
+.welcome-secondary {
+  color: #cfd3e6;
+  font-size: 0.9rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(207, 211, 230, 0.5);
+}
+.welcome-secondary:hover {
+  color: #fdfdfe;
+  text-decoration-color: #fdfdfe;
+}
+.welcome-hero :focus-visible {
+  outline: 2px solid #fdfdfe;
+  outline-offset: 3px;
+}
+#overview-detail {
+  scroll-margin-top: 16px;
+}
+@media (max-width: 640px) {
+  .welcome-hero { min-height: calc(100svh - 150px); }
+}
+
+/* "Explore the findings" exit transition: the hero content gently scales
+   down and dims, like the camera pulling back, right before the page
+   scrolls into the results preview below. */
+.welcome-hero {
+  transition: filter 0.6s ease;
+}
+.welcome-hero.hero-exit {
+  filter: brightness(0.82);
+}
+.welcome-hero .welcome-content {
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+.welcome-hero.hero-exit .welcome-content {
+  opacity: 0;
+  transform: scale(0.94) translateY(-6px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .welcome-hero,
+  .welcome-hero .welcome-content {
+    transition: none;
+  }
+}
+
+/* Results preview: the night sky opens up into daylight, carrying the
+   real headline numbers before the full Results page. Deliberately
+   single-themed (continuation of the hero), like the hero above it. */
+.results-preview {
+  /* The gradient is decorative atmosphere only (fades into the normal page
+     background behind/below the panel); all text lives inside
+     .results-preview-panel, which carries its own solid-enough dark
+     background so legibility never depends on scroll position within
+     this gradient. */
+  background: linear-gradient(180deg, #0a0a18 0%, #14142c 45%, var(--bg) 100%);
+  padding: 72px 20px 64px;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.results-preview-panel {
+  background: #121228;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  padding: 40px 28px 36px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.35);
+}
+.results-preview.visible {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .results-preview {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+.results-preview-inner {
+  max-width: var(--max-w);
+  margin: 0 auto;
+}
+.results-preview-eyebrow {
+  color: #c7d2fe;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+  margin: 0 0 14px;
+}
+.results-preview-title {
+  color: #fdfdfe;
+  font-size: clamp(1.4rem, 3.4vw, 1.9rem);
+  margin: 0 0 32px;
+  text-wrap: balance;
+}
+.preview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  max-width: 680px;
+  margin: 0 auto 28px;
+  text-align: left;
+}
+@media (max-width: 640px) {
+  .preview-grid { grid-template-columns: 1fr; }
+}
+.preview-model-card {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  backdrop-filter: blur(6px);
+}
+.preview-model-name {
+  color: #fdfdfe;
+  font-weight: 700;
+  font-size: 1rem;
+  margin: 0 0 12px;
+}
+.preview-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.88rem;
+  color: #cfd3e6;
+  padding: 5px 0;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  font-variant-numeric: tabular-nums;
+}
+.preview-row:first-of-type { border-top: none; }
+.preview-row strong { color: #fdfdfe; }
+.preview-gap-good { color: #86efac; }
+.preview-gap-bad { color: #fca5a5; }
+.results-preview-note {
+  color: #cfd3e6;
+  max-width: 560px;
+  margin: 0 auto 30px;
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+.results-preview-link {
+  display: inline-block;
+  color: #fdfdfe;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(253,253,254,0.5);
+}
+.results-preview-link:hover {
+  text-decoration-color: #fdfdfe;
+}
+.results-preview :focus-visible {
+  outline: 2px solid #fdfdfe;
+  outline-offset: 3px;
 }
 
 /* page header (non-overview pages) */
@@ -159,6 +506,15 @@ nav.site-nav a.active {
 }
 
 main { max-width: var(--max-w); margin: 0 auto; padding: 40px 20px 100px; }
+body.page-welcome main {
+  max-width: none;
+  padding: 0;
+}
+body.page-welcome #overview-detail {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 40px 20px 100px;
+}
 section { margin-bottom: 48px; }
 section:last-child { margin-bottom: 0; }
 h2 {

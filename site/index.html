@@ -7,7 +7,7 @@
 <meta name="description" content="Overview of a controlled cross-cohort study of EEG sleep-stage classifier generalization.">
 <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="page-welcome">
 <a class="skip-link" href="#main-content">Skip to content</a>
 <div class="site-header">
   <div class="site-header-inner">
@@ -19,16 +19,43 @@
     <a href="interpretation.html">Interpretation</a>
     <a href="reproducibility.html">Reproducibility</a></nav>
 </div>
-<header class="hero">
-  <h1>Where Does Sleep-Staging Generalization Break?</h1>
-  <p class="sub">A controlled cross-cohort study comparing a deep CNN against an interpretable feature-based model on public EEG sleep data &mdash; not a claim of state-of-the-art accuracy, but a decomposition of <em>where and why</em> generalization fails.</p>
-  <div class="badges">
-    <span class="badge">Public data only (PhysioNet Sleep-EDF)</span>
-    <span class="badge">Fully reproducible</span>
-    <span class="badge">Educational research replication</span>
-  </div>
-</header>
+
 <main id="main-content" tabindex="-1">
+<section class="welcome-hero" id="welcome-hero" aria-label="Welcome">
+  <div class="welcome-sky" aria-hidden="true">
+    <div class="welcome-stars">
+      <div class="welcome-stars-near"></div>
+    </div>
+    <div class="welcome-glow welcome-glow-1"></div>
+    <div class="welcome-glow welcome-glow-2"></div>
+    <div class="welcome-glow welcome-glow-3"></div>
+    <div class="welcome-glow welcome-glow-4"></div>
+  </div>
+  <div class="welcome-content">
+    <p class="welcome-eyebrow">A study of sleep, across minds</p>
+    <h1 class="welcome-title">Where Does Sleep-Staging Generalization Break?</h1>
+    <p class="welcome-sub">A controlled cross-cohort study comparing a deep CNN against an interpretable feature-based model on public EEG sleep data &mdash; a decomposition of <em>where and why</em> generalization fails.</p>
+    <div class="welcome-actions">
+      <a class="welcome-cta" id="explore-cta" href="#results-preview">Explore the findings</a>
+      <a class="welcome-secondary" href="#overview-detail">Project overview &amp; methods &darr;</a>
+    </div>
+  </div>
+</section>
+
+<section class="results-preview" id="results-preview" aria-label="Results preview">
+  <div class="results-preview-inner">
+    <div class="results-preview-panel">
+      <p class="results-preview-eyebrow">Full-cohort results &mdash; 153 cassette + 44 telemetry recordings</p>
+      <h2 class="results-preview-title">Where the gap nearly disappears</h2>
+      <div id="preview-card"></div>
+      <p class="results-preview-note" id="preview-note">Loading results&hellip;</p>
+      <a class="results-preview-link" href="results.html">View the full breakdown and stage-level detail &rarr;</a>
+    </div>
+  </div>
+</section>
+
+<div id="overview-detail">
+
 <section id="headline">
   <h2>Main finding</h2>
   <div id="headline-card" class="card"></div>
@@ -62,6 +89,47 @@
     </table>
   </div>
 </section>
+
+</div>
+
+<script>
+(function () {
+  var hero = document.getElementById("welcome-hero");
+  var cta = document.getElementById("explore-cta");
+  var preview = document.getElementById("results-preview");
+  if (!hero || !cta || !preview) return;
+
+  var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  cta.addEventListener("click", function (e) {
+    e.preventDefault();
+    if (!reduceMotion) {
+      hero.classList.add("hero-exit");
+    }
+    var delay = reduceMotion ? 0 : 380;
+    setTimeout(function () {
+      preview.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+      // Move focus for keyboard/screen-reader users once the destination is in view.
+      preview.setAttribute("tabindex", "-1");
+      preview.focus({ preventScroll: true });
+    }, delay);
+  });
+
+  if (reduceMotion || typeof IntersectionObserver === "undefined") {
+    preview.classList.add("visible");
+  } else {
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          preview.classList.add("visible");
+          observer.unobserve(preview);
+        }
+      });
+    }, { threshold: 0.15 });
+    observer.observe(preview);
+  }
+})();
+</script>
 
 <script>
 const RESULTS = {"within_cassette_cnn": {"label": "within-cassette CNN", "macro_f1": 0.6833960430223183, "macro_f1_ci": [0.6813310960657173, 0.6853881737444961], "per_class_f1": {"W": 0.9505335619418072, "N1": 0.38107624776459115, "N2": 0.7500687884068605, "N3": 0.6870259826397901, "REM": 0.6482756343585426}, "confusion_matrix": [[260008, 18512, 347, 309, 6257], [873, 12892, 3360, 350, 4047], [366, 10102, 44979, 8939, 4746], [11, 124, 938, 11912, 54], [387, 4509, 1177, 128, 19634]], "n_test_epochs": 414961}, "within_cassette_feature": {"label": "within-cassette feature model", "macro_f1": 0.6285315236474852, "macro_f1_ci": [0.6264087193472945, 0.630489141751382], "per_class_f1": {"W": 0.9175381983593173, "N1": 0.2927252259104877, "N2": 0.7509839395670665, "N3": 0.6913265306122449, "REM": 0.4900837237883094}, "confusion_matrix": [[247800, 21561, 2550, 2415, 11107], [2108, 9621, 3895, 219, 5679], [2512, 7081, 47321, 5741, 6477], [482, 35, 1094, 11382, 46], [1806, 5914, 2032, 132, 15951]], "n_test_epochs": 414961}, "cross_cnn": {"label": "cassette->telemetry CNN", "macro_f1": 0.5573168767395588, "macro_f1_ci": [0.5524205819145099, 0.5618878157794747], "per_class_f1": {"W": 0.1956168831168831, "N1": 0.35338709677419355, "N2": 0.7978657132797053, "N3": 0.7864897466827503, "REM": 0.6532249438442614}, "confusion_matrix": [[482, 2681, 18, 2, 1240], [12, 2191, 136, 0, 1314], [5, 2368, 14729, 1126, 1623], [0, 67, 1393, 4890, 65], [6, 1440, 794, 2, 6107]], "n_test_epochs": 42691}, "cross_feature": {"label": "cassette->telemetry feature model", "macro_f1": 0.6270067920956552, "macro_f1_ci": [0.6220759599369822, 0.6325550423875099], "per_class_f1": {"W": 0.5786951713969776, "N1": 0.37506284565108094, "N2": 0.8001082690485858, "N3": 0.7471256901591425, "REM": 0.6340419842224896}, "confusion_matrix": [[2355, 1636, 31, 19, 382], [356, 1865, 487, 49, 896], [213, 1211, 14780, 3065, 582], [65, 11, 581, 5751, 7], [727, 1569, 1215, 96, 4742]], "n_test_epochs": 42691}, "feature_stability": {"cohort_a": "cassette", "cohort_b": "telemetry", "feature_importance_a": {"relpow_delta": 0.042516269701346726, "relpow_theta": 0.020111494660519123, "relpow_alpha": 0.03759073254714268, "relpow_sigma": 0.03717672801109991, "relpow_beta": 0.05876967655990319, "spectral_edge_95": 0.026164724184648682, "spectral_entropy": 0.022359280126218732, "hjorth_activity": 0.0, "hjorth_mobility": 0.021124712694443996, "hjorth_complexity": 0.010793996082818337, "mean_abs_amplitude": 0.04127312710990858, "zero_crossing_rate": 0.02472303470719026}, "feature_importance_b": {"relpow_delta": 0.048008992680854096, "relpow_theta": 0.03699034088246733, "relpow_alpha": 0.013066290152842344, "relpow_sigma": 0.05066992171937356, "relpow_beta": 0.0635468217363225, "spectral_edge_95": 0.034332545442129325, "spectral_entropy": 0.011370832275490773, "hjorth_activity": 3.0718488789108716e-05, "hjorth_mobility": 0.012160261976494446, "hjorth_complexity": 0.019693689865235325, "mean_abs_amplitude": 0.02021919802335972, "zero_crossing_rate": 0.00977455767202757}, "spearman_rank_correlation": 0.6223776223776225, "spearman_pvalue": 0.03067589506164015}, "generalization_gap": {"cnn_gap": 0.1260791662827595, "feature_gap": 0.001524731551829972}};
@@ -128,6 +196,44 @@ function renderComparison() {
   `;
 }
 
+function renderPreview() {
+  var card = document.getElementById("preview-card");
+  var note = document.getElementById("preview-note");
+  if (!card) return;
+  var r = RESULTS;
+  if (!r || !r.within_cassette_cnn) {
+    card.innerHTML = '<p class="no-data">No results yet.</p>';
+    if (note) note.textContent = "";
+    return;
+  }
+  var gap = r.generalization_gap;
+  function row(label, value) {
+    return '<div class="preview-row"><span>' + label + '</span><strong>' + fmt(value, 3) + '</strong></div>';
+  }
+  function gapRow(value) {
+    var cls = value <= 0.02 ? "preview-gap-good" : "preview-gap-bad";
+    return '<div class="preview-row"><span>Generalization gap</span><strong class="' + cls + '">' + fmt(value, 3) + '</strong></div>';
+  }
+  card.innerHTML =
+    '<div class="preview-grid">' +
+      '<div class="preview-model-card">' +
+        '<p class="preview-model-name">CNN</p>' +
+        row("Within-cohort macro-F1", r.within_cassette_cnn.macro_f1) +
+        row("Cross-cohort macro-F1", r.cross_cnn.macro_f1) +
+        gapRow(gap.cnn_gap) +
+      '</div>' +
+      '<div class="preview-model-card">' +
+        '<p class="preview-model-name">Feature model (RandomForest)</p>' +
+        row("Within-cohort macro-F1", r.within_cassette_feature.macro_f1) +
+        row("Cross-cohort macro-F1", r.cross_feature.macro_f1) +
+        gapRow(gap.feature_gap) +
+      '</div>' +
+    '</div>';
+  if (note) {
+    note.textContent = "The CNN still loses accuracy on the unseen cohort; the RandomForest's cross-cohort score is close enough to its within-cohort score that the full Results and Interpretation pages treat it as no detectable difference, not proof of flawless generalization.";
+  }
+}
+
 function renderStageLevel() {
   const el = document.getElementById("stage-card");
   if (!el) return;
@@ -176,6 +282,7 @@ function renderInterp() {
 
 renderHeadline();
 renderComparison();
+renderPreview();
 renderStageLevel();
 renderInterp();
 </script>

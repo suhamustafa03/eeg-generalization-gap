@@ -7,7 +7,7 @@
 <meta name="description" content="Full model comparison, generalization gaps, stage-level performance, and SHAP feature stability.">
 <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="">
 <a class="skip-link" href="#main-content">Skip to content</a>
 <div class="site-header">
   <div class="site-header-inner">
@@ -128,6 +128,44 @@ function renderComparison() {
   `;
 }
 
+function renderPreview() {
+  var card = document.getElementById("preview-card");
+  var note = document.getElementById("preview-note");
+  if (!card) return;
+  var r = RESULTS;
+  if (!r || !r.within_cassette_cnn) {
+    card.innerHTML = '<p class="no-data">No results yet.</p>';
+    if (note) note.textContent = "";
+    return;
+  }
+  var gap = r.generalization_gap;
+  function row(label, value) {
+    return '<div class="preview-row"><span>' + label + '</span><strong>' + fmt(value, 3) + '</strong></div>';
+  }
+  function gapRow(value) {
+    var cls = value <= 0.02 ? "preview-gap-good" : "preview-gap-bad";
+    return '<div class="preview-row"><span>Generalization gap</span><strong class="' + cls + '">' + fmt(value, 3) + '</strong></div>';
+  }
+  card.innerHTML =
+    '<div class="preview-grid">' +
+      '<div class="preview-model-card">' +
+        '<p class="preview-model-name">CNN</p>' +
+        row("Within-cohort macro-F1", r.within_cassette_cnn.macro_f1) +
+        row("Cross-cohort macro-F1", r.cross_cnn.macro_f1) +
+        gapRow(gap.cnn_gap) +
+      '</div>' +
+      '<div class="preview-model-card">' +
+        '<p class="preview-model-name">Feature model (RandomForest)</p>' +
+        row("Within-cohort macro-F1", r.within_cassette_feature.macro_f1) +
+        row("Cross-cohort macro-F1", r.cross_feature.macro_f1) +
+        gapRow(gap.feature_gap) +
+      '</div>' +
+    '</div>';
+  if (note) {
+    note.textContent = "The CNN still loses accuracy on the unseen cohort; the RandomForest's cross-cohort score is close enough to its within-cohort score that the full Results and Interpretation pages treat it as no detectable difference, not proof of flawless generalization.";
+  }
+}
+
 function renderStageLevel() {
   const el = document.getElementById("stage-card");
   if (!el) return;
@@ -176,6 +214,7 @@ function renderInterp() {
 
 renderHeadline();
 renderComparison();
+renderPreview();
 renderStageLevel();
 renderInterp();
 </script>
