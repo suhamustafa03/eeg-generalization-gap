@@ -1,5 +1,15 @@
 # Project Proposal: Where Does Sleep-Staging Generalization Break?
 
+> **Status note (added after implementation):** this document is the
+> original plan and is kept as-is for the record. Two things changed during
+> implementation and are documented in `README.md` and the results site,
+> not here: (1) the interpretable model is a scikit-learn RandomForest, not
+> gradient-boosted trees — LightGBM (the original GBT choice) reproducibly
+> crashed when run in the same process as PyTorch; (2) no Grad-CAM analysis
+> of the CNN was built — only SHAP on the RandomForest. Everything else
+> below describes the plan as proposed, not a claim that it was all
+> completed exactly as written.
+
 ## Research question
 When an EEG sleep-stage classifier trained on one cohort is applied to a
 different cohort (different age distribution, health status, or recording
@@ -28,9 +38,10 @@ representations against hand-engineered sleep features side by side.
 ## Proposed contribution
 A controlled replication-and-extension, not a SOTA claim:
 1. Reproduce a standard CNN sleep-stage classifier on Sleep-EDF.
-2. Build a fully interpretable baseline (gradient-boosted trees over
-   hand-engineered band-power / spindle / K-complex / spectral-slope
-   features per epoch).
+2. Build a fully interpretable baseline (originally planned as
+   gradient-boosted trees; implemented as a RandomForest, see status note
+   above, over hand-engineered band-power / spindle / K-complex /
+   spectral-slope features per epoch).
 3. Evaluate both within-dataset and cross-cohort (age-stratified split of
    Sleep-EDF as a first pass; a second public cohort if access terms permit).
 4. Decompose the generalization gap: which features/channels have importance
@@ -65,8 +76,9 @@ A controlled replication-and-extension, not a SOTA claim:
 
 ## Evaluation
 - Per-stage F1 and macro-F1, confusion matrices.
-- Generalization gap = within-stratum accuracy − cross-stratum accuracy,
-  with bootstrap confidence intervals (not point estimates alone).
+- Generalization gap = within-stratum macro-F1 − cross-stratum macro-F1
+  (implemented this way, not raw accuracy), with bootstrap confidence
+  intervals (not point estimates alone).
 - Feature-importance stability across strata (e.g. rank correlation of SHAP
   importances between the two training strata).
 

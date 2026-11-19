@@ -1,0 +1,50 @@
+<section id="setup">
+  <h2>Setup</h2>
+  <div class="card">
+    <p>Requires Python 3.10+.</p>
+    <pre><code>python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt</code></pre>
+  </div>
+</section>
+
+<section id="data-download">
+  <h2>Download data</h2>
+  <div class="card">
+    <p>Public, no account needed. For the full cohort used in the headline result (153 cassette + 44 telemetry recordings &mdash; the <code>--n</code> flag counts recordings, not unique people):</p>
+    <pre><code>python src/download_data.py --subset cassette --n 153
+python src/download_data.py --subset telemetry --n 44</code></pre>
+    <p class="note">For a quick, smaller reproduction, use a lower <code>--n</code>, e.g. 10, matching the preliminary run.</p>
+  </div>
+</section>
+
+<section id="run">
+  <h2>Run the pipeline</h2>
+  <div class="card">
+    <p>Builds processed datasets, trains/evaluates both models within-cohort and cross-cohort, and runs the SHAP stability analysis:</p>
+    <pre><code>python src/run_pipeline.py --max-subjects 999</code></pre>
+    <p class="note">The full cassette download is ~7GB and the full run takes roughly 15&ndash;20 minutes on a modern CPU &mdash; dataset loading dominates; model training and SHAP are fast thanks to subsampling. Use <code>--max-subjects 10</code> for a quick preliminary run.</p>
+    <p>This writes <code>results/results.json</code>. Rebuild this website from it:</p>
+    <pre><code>python site/build_site.py
+open site/index.html</code></pre>
+    <p>No GPU is required. See <code>notebooks/colab_pipeline.ipynb</code> for a free-compute (Google Colab) alternative if local compute or storage isn't available &mdash; check current Colab free-tier limits before relying on it.</p>
+  </div>
+</section>
+
+<section id="honesty">
+  <h2>Honesty notes</h2>
+  <div class="card">
+    <ul>
+      <li>Every number on this site comes from <code>results/results.json</code>, produced by actually running <code>src/run_pipeline.py</code> &mdash; nothing is hand-typed or illustrative.</li>
+      <li>Confidence intervals are bootstrap-based and reported alongside every point estimate.</li>
+      <li>This is an educational replication/extension of published findings, not a novel clinical system, and is not validated for any diagnostic use.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="license">
+  <h2>License and attribution</h2>
+  <div class="card">
+    <p>Code in this repository: for the author's own educational/application use. Sleep-EDF data: Open Data Commons Attribution License &mdash; see <a href="https://physionet.org/content/sleep-edfx/1.0.0/" target="_blank" rel="noopener">PhysioNet's citation requirements</a> before any redistribution.</p>
+  </div>
+</section>

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Methods · Sleep-Staging Generalization Gap</title>
+<meta name="description" content="Datasets, preprocessing, models, and evaluation protocol.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to content</a>
+<div class="site-header">
+  <div class="site-header-inner">
+    <a class="site-title" href="index.html">Sleep-Staging Generalization<span class="dot">.</span></a>
+  </div>
+  <nav class="site-nav" aria-label="Primary"><a href="index.html">Overview</a>
+    <a href="results.html">Results</a>
+    <a href="methods.html" class="active" aria-current="page">Methods</a>
+    <a href="interpretation.html">Interpretation</a>
+    <a href="reproducibility.html">Reproducibility</a></nav>
+</div>
+<div class="page-head">
+  <div class="eyebrow">Sleep-staging generalization gap</div>
+  <h1>Methods</h1>
+  <p class="dek">Datasets, preprocessing, the two models compared, and the evaluation protocol.</p>
+</div>
+<main id="main-content" tabindex="-1">
+<section id="data">
+  <h2>Data</h2>
+  <div class="card">
+    <p><strong>Source:</strong> <a href="https://physionet.org/content/sleep-edfx/1.0.0/" target="_blank" rel="noopener">Sleep-EDF Database Expanded</a> (PhysioNet, Open Data Commons Attribution License &mdash; ODC-By). Public, de-identified; no account or data-use agreement required, only attribution.</p>
+    <p><strong>Two cohorts</strong> used as the two "strata" for the cross-cohort generalization experiment:</p>
+    <table>
+      <thead><tr><th scope="col">Cohort</th><th scope="col">Recordings</th><th scope="col">People</th><th scope="col">Description</th></tr></thead>
+      <tbody>
+        <tr><td>sleep-cassette</td><td>153</td><td>78</td><td>Healthy subjects, aged 25&ndash;101, recorded 1987&ndash;1991 (age effects on sleep). Most people contributed two nights.</td></tr>
+        <tr><td>sleep-telemetry</td><td>44</td><td>22</td><td>Subjects with mild difficulty falling asleep, recorded 1994 (temazepam vs. placebo trial, two nights per person).</td></tr>
+      </tbody>
+    </table>
+    <p>Single EEG channel (Fpz-Cz), present in both cohorts, used throughout for comparability.</p>
+  </div>
+</section>
+
+<section id="preprocessing">
+  <h2>Preprocessing</h2>
+  <div class="card">
+    <p>30-second epochs; AASM 5-class sleep-stage labels (W / N1 / N2 / N3 / REM) from the accompanying hypnogram annotation files, loaded and epoched with MNE-Python.</p>
+  </div>
+</section>
+
+<section id="models">
+  <h2>Models</h2>
+  <div class="card">
+    <p><strong>CNN:</strong> a small 1D convolutional network trained directly on raw epochs.</p>
+    <p><strong>Feature model:</strong> a <strong>RandomForest</strong> classifier trained on 12 hand-engineered, interpretable features per epoch &mdash; relative band power (delta/theta/alpha/sigma/beta), spectral edge frequency, spectral entropy, Hjorth parameters (activity/mobility/complexity), mean absolute amplitude, and zero-crossing rate.</p>
+    <p class="note">Build note: the feature model was originally implemented with LightGBM. LightGBM and PyTorch, run in the same process, reproducibly segfaulted on the development machine (a known libomp ABI conflict between the two libraries' bundled OpenMP runtimes). The feature model was switched to scikit-learn's RandomForestClassifier, which trains alongside the PyTorch CNN without issue; this does not change the project's design, only the specific library used for the interpretable model.</p>
+  </div>
+</section>
+
+<section id="evaluation">
+  <h2>Evaluation</h2>
+  <div class="card">
+    <p><strong>Within-cohort:</strong> 5-fold, recording-grouped cross-validation on the cassette cohort (no single recording appears in both train and test within a fold) &mdash; the in-domain reference.</p>
+    <p class="note">Caveat: grouping is by <em>recording</em>, not by unique person. Since most people in cassette contributed two recordings (nights), a person's second night can land in a different fold than their first night. This means the within-cohort numbers may be mildly optimistic (a model could partly recognize a specific person's traits from one night when scoring their other night). This does not affect the cross-cohort numbers below, since cassette and telemetry are entirely different people regardless of grouping.</p>
+    <p><strong>Cross-cohort:</strong> trained on the full cassette cohort, evaluated on the full, entirely unseen telemetry cohort.</p>
+    <p><strong>Metric:</strong> macro-F1 (unweighted mean of per-class F1), with bootstrap 95% confidence intervals.</p>
+    <p><strong>Interpretability:</strong> SHAP (TreeExplainer) feature importances computed independently per cohort on the feature model; Spearman rank correlation between the two cohorts' importance rankings measures whether the model's reasoning is stable across the distribution shift. At full scale, SHAP values are computed on a stratified random subsample (5,000 epochs per cohort) rather than the full dataset &mdash; standard practice for TreeExplainer at this scale, which does not change what the comparison measures.</p>
+  </div>
+</section>
+
+<div class="page-nav-footer"><a href="results.html"><span class="dir">&larr; Previous</span>Results</a><a href="interpretation.html" style="text-align:right;"><span class="dir">Next &rarr;</span>Interpretation</a></div>
+</main>
+<footer class="site-footer">
+  Public data (PhysioNet Sleep-EDF, ODC-By license) &middot; Educational research project
+</footer>
+</body>
+</html>

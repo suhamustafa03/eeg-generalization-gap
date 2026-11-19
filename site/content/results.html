@@ -1,0 +1,37 @@
+<section id="summary">
+  <h2>Headline result (full cohort)</h2>
+  <div id="headline-card" class="card"></div>
+</section>
+
+<section id="comparison">
+  <h2>Within-cohort vs. cross-cohort performance</h2>
+  <div class="card" id="comparison-card"></div>
+</section>
+
+<section id="stage-level">
+  <h2>Stage-level performance (per-class F1)</h2>
+  <div class="card" id="stage-card"></div>
+</section>
+
+<section id="interpretability">
+  <h2>Does the model rely on the same features across cohorts?</h2>
+  <div class="card" id="interp-card"></div>
+</section>
+
+<section id="preliminary">
+  <h2>Preliminary 10-recording run &mdash; superseded</h2>
+  <div class="preliminary-block">
+    <span class="preliminary-tag">Superseded by the full-cohort run above</span>
+    <p style="margin-top:0;color:var(--text-muted);">An earlier run on 10 recordings per cohort produced different numbers and a different qualitative picture. It is kept here only as an honest record of how both the estimates and the ranking between models changed once the full cohort was used &mdash; not as a result to build conclusions on.</p>
+    <div class="table-scroll">
+    <table>
+      <thead><tr><th scope="col">Model</th><th scope="col">Within-cohort macro-F1</th><th scope="col">Cross-cohort macro-F1</th><th scope="col">Generalization gap</th></tr></thead>
+      <tbody>
+        <tr><td>CNN</td><td>0.702 (95% CI 0.694&ndash;0.710)</td><td>0.270 (95% CI 0.262&ndash;0.279)</td><td><strong>0.432</strong></td></tr>
+        <tr><td>Feature model (RandomForest)</td><td>0.735 (95% CI 0.727&ndash;0.743)</td><td>0.470 (95% CI 0.459&ndash;0.479)</td><td><strong>0.266</strong></td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p style="color:var(--text-muted);margin-bottom:0;">Feature-importance rank correlation at this sample size: 0.57 (Spearman, p = 0.055, not statistically significant).</p>
+  </div>
+</section>

@@ -6,9 +6,9 @@ baseline against a fully interpretable feature-based model. Built as a
 research-skills demonstration project, not a production medical tool.
 
 **Full proposal:** [docs/PROPOSAL.md](docs/PROPOSAL.md)
-**Results website:** [site/index.html](site/index.html) — built from the full-cohort run below; open it directly in a browser.
+**Results website:** [site/index.html](site/index.html) — a small multi-page site (Overview / Results / Methods / Interpretation / Reproducibility), built from the full-cohort run below; open `site/index.html` directly in a browser and navigate from there.
 
-## Headline result (full cohort: 153 cassette + 44 telemetry subjects)
+## Headline result (full cohort: 153 cassette + 44 telemetry recordings)
 
 | Model | Within-cohort macro-F1 | Cross-cohort macro-F1 | Generalization gap |
 |---|---|---|---|
@@ -16,10 +16,12 @@ research-skills demonstration project, not a production medical tool.
 | Feature model (RandomForest) | 0.629 (95% CI 0.626–0.630) | 0.627 (95% CI 0.622–0.633) | **0.002** |
 
 At full scale, both models' cross-cohort gaps are much smaller than the
-10-subject preliminary run below suggested — and the feature model's gap is
-essentially zero: its macro-F1 on the unseen telemetry cohort (0.627) is
-statistically indistinguishable from its within-cassette macro-F1 (0.629).
-The CNN still shows a real gap (0.126), driven mostly by Wake (W), whose F1
+10-recording preliminary run below suggested — and the feature model's gap is
+essentially zero: its macro-F1 on the unseen telemetry cohort (0.627) falls
+well inside its within-cassette 95% confidence interval (0.626–0.630), i.e.
+no statistically detectable difference between the two settings (this is
+based on overlapping bootstrap confidence intervals, not a separate
+hypothesis test). The CNN still shows a real gap (0.126), driven mostly by Wake (W), whose F1
 collapses from 0.95 within-cohort to 0.20 cross-cohort — the CNN relies on
 cues that do not transfer for recognizing wakefulness in the telemetry
 cohort, while the feature model's hand-engineered band-power/Hjorth features
@@ -34,14 +36,14 @@ underscores why the small-sample run was explicitly labeled preliminary:
 sample size changed not just the precision of the estimates but, for the
 feature model, the qualitative conclusion.
 
-### Preliminary result (10 subjects per cohort — superseded by the full-cohort run above)
+### Preliminary result (10 recordings per cohort — superseded by the full-cohort run above)
 
 | Model | Within-cohort macro-F1 | Cross-cohort macro-F1 | Generalization gap |
 |---|---|---|---|
 | CNN | 0.702 (95% CI 0.694–0.710) | 0.270 (95% CI 0.262–0.279) | **0.432** |
 | Feature model (RandomForest) | 0.735 (95% CI 0.727–0.743) | 0.470 (95% CI 0.459–0.479) | **0.266** |
 
-This smaller run showed both models losing substantial accuracy
+This smaller run showed both models losing substantial macro-F1
 cross-cohort, with the CNN's gap roughly 1.6x the feature model's, and a
 feature-importance rank correlation of 0.57 (Spearman, p = 0.055, not
 significant at this sample size). It is kept here, clearly marked
@@ -60,7 +62,7 @@ When a classifier trained on one EEG cohort is applied to a different
 cohort (different age distribution, health status, recording hardware),
 which specific signal features drive the performance drop — and is a
 simple, interpretable model more robust to that shift than a deep one, even
-if less accurate in-domain?
+if less accurate in-domain (lower within-cohort macro-F1)?
 
 ## Why this project, not a generic classifier demo
 
@@ -70,7 +72,7 @@ Comorbid Sleep Disorder Staging"](https://www.alphaxiv.org/abs/2603.23582)
 healthy cohorts fail to generalize to clinical populations. Rather than
 repeating that result, this project decomposes it at the feature level: it
 trains two very different kinds of models on the same data and asks whether
-their *reasoning* (not just their accuracy) survives a cohort shift, using
+their *reasoning* (not just their macro-F1 score) survives a cohort shift, using
 SHAP feature-importance stability as the evidence. See
 [docs/PROPOSAL.md](docs/PROPOSAL.md) for full related-work discussion,
 data/method details, risks, and milestones.
@@ -80,12 +82,21 @@ data/method details, risks, and milestones.
 [Sleep-EDF Database Expanded](https://physionet.org/content/sleep-edfx/1.0.0/)
 (PhysioNet, Open Data Commons Attribution License). Two cohorts:
 
-- **sleep-cassette** — healthy subjects, 1987–1991 study.
-- **sleep-telemetry** — subjects with mild sleep difficulty, 1994 study.
+- **sleep-cassette** — 153 recordings from 78 healthy subjects (most
+  contributed two nights each), 1987–1991 study.
+- **sleep-telemetry** — 44 recordings from 22 subjects with mild sleep
+  difficulty (two nights each: placebo and temazepam), 1994 study.
 
 Both are public, de-identified, and require no account or data-use
 agreement — only attribution, which this README and `docs/PROPOSAL.md`
 provide.
+
+Note on terminology: the code's `--max-subjects` / `--n` flags and some
+variable names say "subjects," but they actually count and limit
+*recordings* (PSG+hypnogram pairs), not unique people — most people in both
+cohorts contributed two separate recordings (nights). This README now uses
+"recordings" for counts; the flag names themselves were left as-is to avoid
+changing the pipeline's interface. See the evaluation limitation below.
 
 ## Repository structure
 
@@ -98,11 +109,15 @@ src/
   dataset_build.py      Build cached .npz datasets from raw recordings
   models.py                 CNN baseline + RandomForest feature model
   train_cnn.py             Standalone CNN training script
-  evaluate.py              Within-cohort vs. cross-cohort evaluation (subject-grouped)
+  evaluate.py              Within-cohort vs. cross-cohort evaluation (grouped by recording)
   interpret.py              SHAP feature-importance stability across cohorts
   run_pipeline.py        End-to-end driver -> results/results.json
 notebooks/colab_pipeline.ipynb   Free-compute fallback (Google Colab) mirroring run_pipeline.py
-site/                    Static results website (built from results/results.json)
+site/                    Static multi-page results website (built from results/results.json)
+  layout.html            Shared page shell: header, nav, footer
+  styles.css             Shared stylesheet
+  content/               Per-page source content (overview/results/methods/interpretation/reproducibility)
+  build_site.py          Assembles content + layout + embedded results into site/*.html
 results/                  Pipeline outputs (JSON), not checked in by default
 ```
 
@@ -158,8 +173,15 @@ since they change over time.
   produced by actually running `src/run_pipeline.py` — nothing is
   hand-typed or illustrative.
 - Confidence intervals are bootstrap-based and reported alongside every
-  point estimate; sample sizes are small for a fast reproducible demo, and
-  this is stated directly on the site and in the limitations section.
+  point estimate.
+- "Within-cohort" cross-validation groups by *recording*, not by unique
+  person: since most people contributed two recordings (nights), a
+  person's second night can land in a different fold than their first.
+  This means the within-cohort numbers may be mildly optimistic for the
+  feature model and CNN alike (the models could partly recognize a
+  specific person's traits from one night when scoring their other
+  night). The cross-cohort numbers are unaffected by this, since cassette
+  and telemetry are entirely different people regardless of grouping.
 - This is an educational replication/extension of published findings, not
   a novel clinical system, and is not validated for any diagnostic use.
 

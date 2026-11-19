@@ -1,0 +1,33 @@
+<section id="headline">
+  <h2>Main finding</h2>
+  <div id="headline-card" class="card"></div>
+  <p class="note">Full cohort: 153 cassette recordings (78 people) + 44 telemetry recordings (22 people), PhysioNet Sleep-EDF Database Expanded. See <a href="results.html">Results</a> for the complete breakdown.</p>
+</section>
+
+<section id="question">
+  <h2>Research question</h2>
+  <div class="card">
+    <p>When an EEG sleep-stage classifier trained on one cohort is applied to a different cohort (different age distribution, health status, or recording hardware), which specific signal features drive the performance drop &mdash; and can a simple, interpretable feature-based model be more robust to this shift than a deep model, even if less accurate in-domain?</p>
+  </div>
+</section>
+
+<section id="why">
+  <h2>Why this project</h2>
+  <div class="card">
+    <p>This engages a recent finding &mdash; <a href="https://www.alphaxiv.org/abs/2603.23582" target="_blank" rel="noopener">"AI Generalisation Gap In Comorbid Sleep Disorder Staging"</a> (arXiv:2603.23582, March 2026) &mdash; that deep sleep-staging models trained on healthy cohorts fail to generalize to clinical populations. Rather than repeating that result, this project decomposes it at the feature level: it trains two very different kinds of models on the same data and asks whether their <em>reasoning</em> (not just their macro-F1 score) survives a cohort shift, using SHAP feature-importance stability as the evidence. See <a href="interpretation.html">Interpretation</a> for the full related-work discussion.</p>
+  </div>
+</section>
+
+<section id="map">
+  <h2>How this site is organized</h2>
+  <div class="card">
+    <table>
+      <tbody>
+        <tr><td style="width:160px;"><a href="results.html">Results</a></td><td>Model comparison, generalization gaps, stage-level performance, SHAP feature stability.</td></tr>
+        <tr><td><a href="methods.html">Methods</a></td><td>Datasets, preprocessing, models, and evaluation protocol.</td></tr>
+        <tr><td><a href="interpretation.html">Interpretation</a></td><td>What the findings suggest, related work, uncertainty, and limitations.</td></tr>
+        <tr><td><a href="reproducibility.html">Reproducibility</a></td><td>Setup, data sources, and how to rerun the full analysis yourself.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
